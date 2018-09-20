@@ -1,0 +1,19 @@
+body {
+	background-color: #000;
+	width: 100%;
+	height: 100%;
+}
+#game {
+	display: block;
+	margin: 0 auto;
+}
+#touch-left {
+	display: none;
+	position: fixed;
+	bottom: 2px;
+	left: 2px;
+}
+
+audio {
+	display: none;
+}
