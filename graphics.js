@@ -4,12 +4,12 @@ function setupGraphics() {
 	PlayerID = 0
 	// Get screen dimensions
 	$(window).resize(function() {
-		if (0.5625*this.innerWidth > this.innerHeight) {
-			Screen.height = 0.8*this.innerHeight
-			Screen.width = Screen.height/0.5625
+		if (0.6429*this.innerWidth > this.innerHeight) {
+			Screen.height = 0.9*this.innerHeight
+			Screen.width = Screen.height/0.6429
 		} else {
-			Screen.width = 0.8*this.innerWidth
-			Screen.height = Screen.width*0.5625
+			Screen.width = 0.9*this.innerWidth
+			Screen.height = Screen.width*0.6429
 		}
 		Graphics.SCALE = Screen.width / 160
 	})
@@ -27,6 +27,16 @@ function drawArena() {
 	G.shadowColor = "#999f99"
 	G.shadowBlur = 10*G.SCALE
 	G.fillRect(4.5*G.SCALE,4.5*G.SCALE,150*G.SCALE,80*G.SCALE)
+	// Info
+	G.font = "10px monospace"
+	G.textAlign = "center"
+	G.textBaseline = "top"
+	G.fillStyle = "#ccf9"
+	G.shadowColor = "#fcf"
+	G.shadowBlur = 100
+	G.scale(G.SCALE,G.SCALE)
+	G.fillText(Mechanics.disks[PlayerID].mode,75,84.5)
+	G.resetTransform()
 }
 
 function drawDisk(disk) {
