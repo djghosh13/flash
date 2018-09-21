@@ -52,7 +52,7 @@ class Powerup {
 		for (let i=0; i<M.disks.length; i++) {
 			let disk = M.disks[i]
 			let disp = disk.position.sub(this.position)
-			if (disp.len() < Disk.radius + Powerup.radius) {
+			if (disp.len() < Disk.radius + Powerup.radius && disk.team !== 2) {
 				this.capture[i]++
 				if (this.mode === "KILL" && Math.random() < 0.5)
 					this.capture[i]--
@@ -61,8 +61,12 @@ class Powerup {
 				if (disk.team !== this.team)
 					probCapture = probCapture/5 - 0.01
 				if (Math.random() < probCapture) {
-					disk.mode = this.mode
-					removePowerup(this)
+					if (this.mode === "KILL" && disk.team !== this.team) {
+						spawnPowerup(disk.team)
+					} else {
+						disk.mode = this.mode
+						removePowerup(this)
+					}
 				}
 			}
 			else if (this.capture[i] > 0)
@@ -118,8 +122,15 @@ class Scoreboard {
 	}
 	//
 	update() {
+		let M = Mechanics
 		// TODO - Check events to see how many points to grant
 		// TODO - Check points to see if a powerup should be spawned
+		let numPowers = [0, 0]
+		foreachPower(p => numPowers[p.team] += 1)
+		if (numPowers[0] < 2 && Math.random() < 1/300)
+			spawnPowerup(0)
+		if (numPowers[1] < 2 && Math.random() < 1/300)
+			spawnPowerup(1)
 	}
 }
 

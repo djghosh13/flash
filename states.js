@@ -187,6 +187,7 @@ class KillState extends State {
 	}
 	handle(event) {
 		if (event === "HIT_DISK_HARD") {
+			spawnPowerup(this.disk.team, true)
 			this.disk.control = null
 			this.disk.team = 2
 			return new MoveState(this.disk)
