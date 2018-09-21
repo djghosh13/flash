@@ -71,6 +71,10 @@ class Powerup {
 	}
 }
 
+class Scoreboard {
+	
+}
+
 function setupMechanics() {
 	Mechanics = {
 		width: 150,
