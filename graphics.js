@@ -27,15 +27,25 @@ function drawArena() {
 	G.shadowColor = "#999f99"
 	G.shadowBlur = 10*G.SCALE
 	G.fillRect(4.5*G.SCALE,4.5*G.SCALE,150*G.SCALE,80*G.SCALE)
-	// Info
+	// Show info along bottom
 	G.font = "10px monospace"
-	G.textAlign = "center"
 	G.textBaseline = "top"
-	G.fillStyle = "#ccf9"
-	G.shadowColor = "#fcf"
 	G.shadowBlur = 100
 	G.scale(G.SCALE,G.SCALE)
+	// Player powerup
+	G.textAlign = "center"
+	G.fillStyle = "#fff9"
+	G.shadowColor = "#fff"
 	G.fillText(Mechanics.disks[PlayerID].mode,75,84.5)
+	// Scores
+	G.textAlign = "left"
+	G.fillStyle = "#ccf9"
+	G.shadowColor = "#ccf"
+	G.fillText(Mechanics.scores.getTotal(0),4.5,84.5)
+	G.textAlign = "right"
+	G.fillStyle = "#fcc9"
+	G.shadowColor = "#fcc"
+	G.fillText(Mechanics.scores.getTotal(1),154.5,84.5)
 	G.resetTransform()
 }
 

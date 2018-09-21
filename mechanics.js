@@ -72,7 +72,50 @@ class Powerup {
 }
 
 class Scoreboard {
-	
+	/**
+	 * Scoring System
+	 * 
+	 * Fixed points:
+	 * 10 points for normal dash hit and initial stun
+	 * 7 points for dash hit in poof mode
+	 * 5 points for dash hit in chill mode
+	 * 1 point for proximity boom
+	 * 
+	 * Style points:
+	 * 1 point for intercepting opponent dash (start dash after opponent)
+	 * 1 point per wall hit before dash stun
+	 * 3 points for secondary dash hit and stun (opponent already stunned)
+	 * 1 point for own powerup collect
+	 * 5 points for opponent powerup steal
+	 * 
+	 * Point bonus:
+	 * +25% points (rounded up) per player of deficit
+	 * 
+	 */
+	constructor() {
+		this.unused = [0, 0]
+		this.total = [0, 0]
+	}
+	get(team) {
+		if (team === 0 || team === 1)
+			return this.unused[team]
+		return 0
+	}
+	getTotal(team) {
+		if (team === 0 || team === 1)
+			return this.total[team]
+		return 0
+	}
+	give(team,points) {
+		if (team === 0 || team === 1) {
+			this.unused[team] += points
+			this.total[team] += points
+		}
+	}
+	consume(team,points) {
+		if (team === 0 || team === 1)
+			this.unused[team] = Math.max(this.unused[team] - points,0)
+	}
 }
 
 function setupMechanics() {
@@ -83,7 +126,8 @@ function setupMechanics() {
 		disks: [],
 		powers: [],
 		special: "NONE",
-		specFrames: 0
+		specFrames: 0,
+		scores: new Scoreboard()
 	}
 }
 
