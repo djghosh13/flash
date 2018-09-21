@@ -27,8 +27,8 @@ function gameLoop() {
 	foreach(applyFriction)
 	//
 	drawSpecial()
-	if (Mechanics.powers.length < Mechanics.disks.length && Math.random() < 1/60/1)
-		spawnPowerup(Math.round(Math.random()))
+	//
+	Mechanics.scores.update()
 	//
 	requestAnimationFrame(gameLoop)
 }

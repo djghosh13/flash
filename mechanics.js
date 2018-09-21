@@ -59,7 +59,7 @@ class Powerup {
 				// Probabilistic
 				let probCapture = (this.capture[i] - 30) / 300
 				if (disk.team !== this.team)
-					probCapture = probCapture / 3
+					probCapture = probCapture/5 - 0.01
 				if (Math.random() < probCapture) {
 					disk.mode = this.mode
 					removePowerup(this)
@@ -116,6 +116,11 @@ class Scoreboard {
 		if (team === 0 || team === 1)
 			this.unused[team] = Math.max(this.unused[team] - points,0)
 	}
+	//
+	update() {
+		// TODO - Check events to see how many points to grant
+		// TODO - Check points to see if a powerup should be spawned
+	}
 }
 
 function setupMechanics() {
@@ -169,12 +174,14 @@ function update(disk) {
 		disk.direction = A(disk.direction - turnAmt)
 }
 
-function spawnPowerup(team) {
+function spawnPowerup(team, kill=false) {
 	let pos = V(Powerup.radius + (150 - 2*Powerup.radius)*Math.random(),
 			Powerup.radius + (80 - 2*Powerup.radius)*Math.random())
-	let mode = ["BANG","POOF","BOOM","CHILL","KILL"][Math.floor(5*Math.random())]
+	let mode = ["BANG","POOF","BOOM","CHILL"][Math.floor(4*Math.random())]
+	if (kill) mode = "KILL"
 	Mechanics.powers.push(new Powerup(pos,mode,team))
 }
+
 function removePowerup(powerup) {
 	let M = Mechanics
 	for (let i=0; i<M.powers.length; i++) {
