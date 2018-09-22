@@ -20,6 +20,7 @@ class MoveState extends State {
 		super(disk)
 		this.mode = "NONE"
 		this.frame = -1
+		Mechanics.scores.handle("DASH_END",disk)
 	}
 	handle(event) {
 		if (event === "HIT_DISK_HARD")
@@ -127,6 +128,7 @@ class StunState extends State {
 		super(disk)
 		disk.dash = false
 		this.frame = frames
+		Mechanics.scores.handle("DASH_END",disk)
 	}
 	handle(event) {
 		if (event === "HIT_DISK_HARD")
@@ -158,6 +160,7 @@ class ChillState extends State {
 		disk.accel = V()
 		disk.dash = false
 		this.frame = frames
+		Mechanics.scores.handle("DASH_END",disk)
 	}
 	handle(event) {
 		if (event === "HIT_DISK_HARD")
@@ -184,6 +187,7 @@ class KillState extends State {
 		disk.dash = false
 		disk.special = false
 		this.frame = frames
+		Mechanics.scores.handle("DASH_END",disk)
 	}
 	handle(event) {
 		if (event === "HIT_DISK_HARD") {
@@ -210,6 +214,7 @@ class DashState extends State {
 	constructor(disk) {
 		super(disk)
 		this.frame = 120
+		Mechanics.scores.handle("DASH_START",disk)
 	}
 	handle(event) {
 		if (event.startsWith("HIT_DISK") && this.frame > 95)

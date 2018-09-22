@@ -1,11 +1,11 @@
 $(document).ready(function() {
 	setupGraphics()
 	setupMechanics()
-	setPlayer(1)
-	spawn(20,20,0,new AntiAI())
-	spawn(130,20,1,new MKInput())
+	setPlayer(0)
+	spawn(20,20,0,new MKInput())
+	spawn(130,20,1,new AntiAI())
 	spawn(20,60,0,new AntiAI())
-	spawn(130,60,1,new CircleAI())
+	spawn(130,60,1,new AntiAI())
 	/*spawn(20,40,0,new AntiAI())
 	spawn(130,40,1,new AntiAI())*/
 	requestAnimationFrame(gameLoop)

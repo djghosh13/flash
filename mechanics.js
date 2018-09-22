@@ -65,6 +65,7 @@ class Powerup {
 						spawnPowerup(disk.team)
 					} else {
 						disk.mode = this.mode
+						M.scores.give(disk.team,(disk.team === this.team) ? 1 : 5)
 						removePowerup(this)
 					}
 				}
@@ -80,25 +81,26 @@ class Scoreboard {
 	 * Scoring System
 	 * 
 	 * Fixed points:
-	 * 10 points for normal dash hit and initial stun
-	 * 7 points for dash hit in poof mode
-	 * 5 points for dash hit in chill mode
+	 * 10 points for normal dash hit and initial stun (CHECK)
+	 * 7 points for dash hit in poof mode (CHECK)
+	 * 5 points for dash hit in chill mode (CHECK)
 	 * 1 point for proximity boom
 	 * 
 	 * Style points:
-	 * 1 point for intercepting opponent dash (start dash after opponent)
-	 * 1 point per wall hit before dash stun
-	 * 3 points for secondary dash hit and stun (opponent already stunned)
-	 * 1 point for own powerup collect
-	 * 5 points for opponent powerup steal
+	 * 1 point for intercepting opponent dash (start dash after opponent) (CHECK)
+	 * 1 point per wall hit before dash stun (CHECK)
+	 * 1 point for own powerup collect (CHECK)
+	 * 5 points for opponent powerup steal (CHECK)
 	 * 
 	 * Point bonus:
 	 * +25% points (rounded up) per player of deficit
+	 * -50% points (rounded up) if opponent already stunned
 	 * 
 	 */
 	constructor() {
 		this.unused = [0, 0]
 		this.total = [0, 0]
+		this.possiblePoints = {}
 	}
 	get(team) {
 		if (team === 0 || team === 1)
@@ -121,6 +123,41 @@ class Scoreboard {
 			this.unused[team] = Math.max(this.unused[team] - points,0)
 	}
 	//
+	handle(event,disk) {
+		if (event === "DASH_START") {
+			let points = 10
+			if (disk.state.mode === "POOF") points -= 3
+			if (Mechanics.special === "CHILL") points -= 5
+			this.possiblePoints[disk] = points
+		}
+		else if (event === "DASH_END") {
+			this.possiblePoints[disk] = 0
+		}
+		else if (event === "HIT_WALL") {
+			if (this.possiblePoints[disk])
+				this.possiblePoints[disk] += 1
+		}
+	}
+	handleDiskHit(event0,disk0,event1,disk1) {
+		if (disk0.team === disk1.team || disk0.team === 2 || disk1.team === 2)
+			return
+		if ((this.possiblePoints[disk0] && disk0 === Mechanics.disks[PlayerID]) || (this.possiblePoints[disk1] && disk1 === Mechanics.disks[PlayerID]))
+			console.log("Player hit a disk!")
+		if (this.possiblePoints[disk0] && this.possiblePoints[disk1]) {
+			if (disk0.state.frame > disk1.state.frame)
+				this.give(disk0.team,1)
+			if (disk1.state.frame > disk0.state.frame)
+				this.give(disk1.team,1)
+		}
+		else if (this.possiblePoints[disk0]) {
+			this.give(disk0.team,this.possiblePoints[disk0])
+			this.possiblePoints[disk0] = 0
+		}
+		else if (this.possiblePoints[disk1]) {
+			this.give(disk1.team,this.possiblePoints[disk1])
+			this.possiblePoints[disk1] = 0
+		}
+	}
 	update() {
 		let M = Mechanics
 		// TODO - Check events to see how many points to grant
@@ -185,11 +222,27 @@ function update(disk) {
 		disk.direction = A(disk.direction - turnAmt)
 }
 
+powerupGenerator = (function *() {
+	let names = ["BANG","BOOM","POOF","CHILL"]
+	let pups = []
+	for (let i=0; i<names.length; i++) {
+		let idx = Math.floor((1 + i) * Math.random())
+		pups.splice(idx,0,i)
+	}
+	while (true) {
+		let next = pups.shift()
+		yield names[next]
+		let idx = Math.floor(1 + pups.length*Math.random())
+		pups.splice(idx,0,next)
+	}
+})()
+
 function spawnPowerup(team, kill=false) {
 	let pos = V(Powerup.radius + (150 - 2*Powerup.radius)*Math.random(),
 			Powerup.radius + (80 - 2*Powerup.radius)*Math.random())
-	let mode = ["BANG","POOF","BOOM","CHILL"][Math.floor(4*Math.random())]
+	let mode
 	if (kill) mode = "KILL"
+	else mode = powerupGenerator.next().value
 	Mechanics.powers.push(new Powerup(pos,mode,team))
 }
 
@@ -224,11 +277,13 @@ function resolveWallCollision(disk) {
 		disk.velocity.x = -BOUNCE*disk.velocity.x
 		disk.position.x = constrain(disk.position.x, Disk.radius, M.width - Disk.radius)
 		disk.handle("HIT_WALL")
+		M.scores.handle("HIT_WALL",disk)
 	}
 	if (disk.position.y - Disk.radius < 0 || disk.position.y + Disk.radius > M.height) {
 		disk.velocity.y = -BOUNCE*disk.velocity.y
 		disk.position.y = constrain(disk.position.y, Disk.radius, M.height - Disk.radius)
 		disk.handle("HIT_WALL")
+		M.scores.handle("HIT_WALL",disk)
 	}
 }
 
@@ -264,8 +319,11 @@ function resolveDiskCollision(disk) {
 					iImpact *= 0.4
 					jImpact *= 0.4
 				}
-				M.disks[i].handle((iImpact > 115) ? "HIT_DISK_HARD" : "HIT_DISK_SOFT")
-				disk.handle((jImpact > 115) ? "HIT_DISK_HARD" : "HIT_DISK_SOFT")
+				let iEvent = (iImpact > 115) ? "HIT_DISK_HARD" : "HIT_DISK_SOFT"
+				let jEvent = (jImpact > 115) ? "HIT_DISK_HARD" : "HIT_DISK_SOFT"
+				M.disks[i].handle(iEvent)
+				disk.handle(jEvent)
+				M.scores.handleDiskHit(iEvent,M.disks[i],jEvent,disk)
 			}
 		}
 	}
