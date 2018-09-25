@@ -114,8 +114,9 @@ class Scoreboard {
 	}
 	give(team,points) {
 		if (team === 0 || team === 1) {
-			this.unused[team] += points
-			this.total[team] += points
+			let multiplier = 12 / foreach(none,onTeam(team)).length
+			this.unused[team] += points * multiplier
+			this.total[team] += points * multiplier
 		}
 	}
 	consume(team,points) {
