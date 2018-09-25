@@ -166,7 +166,7 @@ class Scoreboard {
 		if (numPowers[1] < 2 && Math.random() < 1/300)
 			spawnPowerup(1)
 		// Spawn KILL powerups
-		let KILL_THRESH = 200
+		let KILL_THRESH = 1200
 		let numKills = foreachPower(none,(p => p.mode === "KILL")).length
 		if (this.unused[0] + this.unused[1] > KILL_THRESH && 2*numKills <= numDisks() && Math.random() < 0.02) {
 			let total = this.unused[0]*this.unused[0] + this.unused[1]*this.unused[1]

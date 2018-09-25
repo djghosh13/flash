@@ -38,14 +38,14 @@ function drawArena() {
 	G.shadowColor = "#fff"
 	G.fillText(Mechanics.disks[PlayerID].mode,75,84.5)
 	// Scores
-	G.textAlign = "left"
+	/* G.textAlign = "left"
 	G.fillStyle = "#ccf9"
 	G.shadowColor = "#ccf"
 	G.fillText(Mechanics.scores.get(0),4.5,84.5)
 	G.textAlign = "right"
 	G.fillStyle = "#fcc9"
 	G.shadowColor = "#fcc"
-	G.fillText(Mechanics.scores.get(1),154.5,84.5)
+	G.fillText(Mechanics.scores.get(1),154.5,84.5) */
 	G.resetTransform()
 }
 
