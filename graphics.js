@@ -30,16 +30,18 @@ function drawArena() {
 	// Scores
 	let score0 = Mechanics.scores.get(0)
 	let score1 = Mechanics.scores.get(1)
+	let total = Math.max(score0 + score1,Mechanics.scores.KILL_THRESH)
+	G.shadowColor = "#99c"
+	G.fillRect(4.5*G.SCALE,4.5*G.SCALE,score0/total*150*G.SCALE,80*G.SCALE)
+	G.shadowColor = "#c99"
+	G.fillRect(154.5*G.SCALE,4.5*G.SCALE,-score1/total*150*G.SCALE,80*G.SCALE)
 	if (score0 + score1 >= Mechanics.scores.KILL_THRESH) {
-		let total = score0 + score1
-		G.shadowColor = "#fff"
-		G.fillRect((4.5 + score0/total*150)*G.SCALE,4.5*G.SCALE,0,80*G.SCALE)
-	} else {
-		let total = Mechanics.scores.KILL_THRESH
-		G.shadowColor = "#99c"
-		G.fillRect(4.5*G.SCALE,4.5*G.SCALE,score0/total*150*G.SCALE,80*G.SCALE)
-		G.shadowColor = "#c99"
-		G.fillRect(154.5*G.SCALE,4.5*G.SCALE,-score1/total*150*G.SCALE,80*G.SCALE)
+		G.shadowBlur = 0
+		G.fillRect(4.5*G.SCALE,4.5*G.SCALE,150*G.SCALE,80*G.SCALE)
+		G.fillStyle = "#fef"
+		G.shadowColor = "#fef"
+		G.shadowBlur = 10*G.SCALE
+		G.fillRect((4 + score0/total*150)*G.SCALE,4.5*G.SCALE,1*G.SCALE,80*G.SCALE)
 	}
 	// Show info along bottom
 	G.font = "10px monospace"
