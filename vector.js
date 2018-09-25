@@ -54,3 +54,7 @@ function constrain(value,min,max) {
 	if (value > max) return max
 	return value
 }
+
+function none() {
+	return true
+}

@@ -22,6 +22,9 @@ class Disk {
 		if (this.control !== null)
 			this.control.handle(event)
 	}
+	get dead() {
+		return this.team === 2
+	}
 	set input(value) {
 		let mvt = V()
 		if (value[0] > 0) mvt.x = 1
@@ -43,13 +46,13 @@ class Powerup {
 		this.mode = mode
 		this.team = team
 		this.capture = []
-		for (let i=0; i<Mechanics.disks.length; i++) {
+		for (let i=0; i<numDisks(); i++) {
 			this.capture.push(0)
 		}
 	}
 	update() {
 		let M = Mechanics
-		for (let i=0; i<M.disks.length; i++) {
+		for (let i=0; i<numDisks(); i++) {
 			let disk = M.disks[i]
 			let disp = disk.position.sub(this.position)
 			if (disp.len() < Disk.radius + Powerup.radius && disk.team !== 2) {
@@ -65,9 +68,9 @@ class Powerup {
 						spawnPowerup(disk.team)
 					} else {
 						disk.mode = this.mode
-						M.scores.give(disk.team,(disk.team === this.team) ? 1 : 5)
-						removePowerup(this)
+						M.scores.give(disk.team,(disk.team === this.team) ? 1 : 10)
 					}
+					removePowerup(this)
 				}
 			}
 			else if (this.capture[i] > 0)
@@ -81,26 +84,23 @@ class Scoreboard {
 	 * Scoring System
 	 * 
 	 * Fixed points:
-	 * 10 points for normal dash hit and initial stun (CHECK)
-	 * 7 points for dash hit in poof mode (CHECK)
-	 * 5 points for dash hit in chill mode (CHECK)
+	 * 5 points for normal dash hit and initial stun (CHECK)
 	 * 1 point for proximity boom
 	 * 
 	 * Style points:
 	 * 1 point for intercepting opponent dash (start dash after opponent) (CHECK)
-	 * 1 point per wall hit before dash stun (CHECK)
+	 * 2 points per wall hit before dash stun (CHECK)
 	 * 1 point for own powerup collect (CHECK)
-	 * 5 points for opponent powerup steal (CHECK)
+	 * 10 points for opponent powerup steal (CHECK)
 	 * 
 	 * Point bonus:
 	 * +25% points (rounded up) per player of deficit
-	 * -50% points (rounded up) if opponent already stunned
 	 * 
 	 */
 	constructor() {
 		this.unused = [0, 0]
 		this.total = [0, 0]
-		this.possiblePoints = {}
+		this.possiblePoints = new Map()
 	}
 	get(team) {
 		if (team === 0 || team === 1)
@@ -125,49 +125,61 @@ class Scoreboard {
 	//
 	handle(event,disk) {
 		if (event === "DASH_START") {
-			let points = 10
-			if (disk.state.mode === "POOF") points -= 3
-			if (Mechanics.special === "CHILL") points -= 5
-			this.possiblePoints[disk] = points
+			let points = 5
+			this.possiblePoints.set(disk,points)
 		}
 		else if (event === "DASH_END") {
-			this.possiblePoints[disk] = 0
+			this.possiblePoints.set(disk,0)
 		}
 		else if (event === "HIT_WALL") {
-			if (this.possiblePoints[disk])
-				this.possiblePoints[disk] += 1
+			if (this.possiblePoints.get(disk))
+				this.possiblePoints.set(disk,this.possiblePoints.get(disk) + 2)
 		}
 	}
 	handleDiskHit(event0,disk0,event1,disk1) {
-		if (disk0.team === disk1.team || disk0.team === 2 || disk1.team === 2)
+		if (disk0.team === disk1.team || disk0.dead || disk1.dead)
 			return
-		if ((this.possiblePoints[disk0] && disk0 === Mechanics.disks[PlayerID]) || (this.possiblePoints[disk1] && disk1 === Mechanics.disks[PlayerID]))
-			console.log("Player hit a disk!")
-		if (this.possiblePoints[disk0] && this.possiblePoints[disk1]) {
+		if (!event0.endsWith("HARD") && !event1.endsWith("HARD"))
+			return
+		if (this.possiblePoints.get(disk0) && this.possiblePoints.get(disk1)) {
 			if (disk0.state.frame > disk1.state.frame)
 				this.give(disk0.team,1)
 			if (disk1.state.frame > disk0.state.frame)
 				this.give(disk1.team,1)
 		}
-		else if (this.possiblePoints[disk0]) {
-			this.give(disk0.team,this.possiblePoints[disk0])
-			this.possiblePoints[disk0] = 0
+		else if (this.possiblePoints.get(disk0)) {
+			this.give(disk0.team,this.possiblePoints.get(disk0))
+			this.possiblePoints.set(disk0,0)
 		}
-		else if (this.possiblePoints[disk1]) {
-			this.give(disk1.team,this.possiblePoints[disk1])
-			this.possiblePoints[disk1] = 0
+		else if (this.possiblePoints.get(disk1)) {
+			this.give(disk1.team,this.possiblePoints.get(disk1))
+			this.possiblePoints.set(disk1,0)
 		}
 	}
 	update() {
 		let M = Mechanics
-		// TODO - Check events to see how many points to grant
-		// TODO - Check points to see if a powerup should be spawned
-		let numPowers = [0, 0]
-		foreachPower(p => numPowers[p.team] += 1)
+		// Spawn regular powerups
+		let numPowers = [foreachPower(none,onTeam(0)).length,foreachPower(none,onTeam(1)).length]
 		if (numPowers[0] < 2 && Math.random() < 1/300)
 			spawnPowerup(0)
 		if (numPowers[1] < 2 && Math.random() < 1/300)
 			spawnPowerup(1)
+		// Spawn KILL powerups
+		let KILL_THRESH = 200
+		let numKills = foreachPower(none,(p => p.mode === "KILL")).length
+		if (this.unused[0] + this.unused[1] > KILL_THRESH && 2*numKills <= numDisks() && Math.random() < 0.02) {
+			let total = this.unused[0]*this.unused[0] + this.unused[1]*this.unused[1]
+			let prob0 = this.unused[0]*this.unused[0] / total
+			if (Math.random() < prob0) {
+				spawnPowerup(0,true)
+				this.unused[0] = 0
+				this.unused[1] = Math.floor(this.unused[1] / 2)
+			} else {
+				spawnPowerup(1,true)
+				this.unused[0] = Math.floor(this.unused[0] / 2)
+				this.unused[1] = 0
+			}
+		}
 	}
 }
 
@@ -184,18 +196,36 @@ function setupMechanics() {
 	}
 }
 
-function foreach(callback) {
+function foreach(callback,condition=none) {
 	let M = Mechanics
-	for (let i=0; i<M.disks.length; i++) {
-		callback(M.disks[i])
+	result = []
+	for (let i=0; i<numDisks(); i++) {
+		if (condition(M.disks[i]))
+			result.push(callback(M.disks[i]))
 	}
+	return result
 }
 
-function foreachPower(callback) {
+function foreachPower(callback,condition=none) {
 	let M = Mechanics
+	let result = []
 	for (let i=0; i<M.powers.length; i++) {
-		callback(M.powers[i])
+		if (condition(M.powers[i]))
+			result.push(callback(M.powers[i]))
 	}
+	return result
+}
+
+function numDisks(team=-1) {
+	if (team === -1)
+		return Mechanics.disks.length
+	return foreach(none,onTeam(team)).length
+}
+
+function onTeam(team) {
+	if (team === -1)
+		return none
+	return x => x.team === team
 }
 
 function spawn(x,y,t,c=null) {
@@ -291,8 +321,8 @@ function resolveDiskCollision(disk) {
 	const BOUNCE = 1.1
 	const ELASTICITY = 0.9
 	let M = Mechanics
-	let j = M.disks.length
-	for (let i=0; i<M.disks.length; i++) {
+	let j = numDisks()
+	for (let i=0; i<numDisks(); i++) {
 		if (M.disks[i] === disk) j = i
 		if (j < i) {
 			let disp = disk.position.sub(M.disks[i].position).mul(0.5)
@@ -332,7 +362,7 @@ function resolveDiskCollision(disk) {
 function resolveAllCollision() {
 	let M = Mechanics
 	let recheck = false
-	for (let i=1; i<M.disks.length; i++) {
+	for (let i=1; i<numDisks(); i++) {
 		for (let j=0; j<i; j++) {
 			let disp = M.disks[j].position.sub(M.disks[i].position).mul(0.5)
 			if (disp.len2() < Disk.radius*Disk.radius) {

@@ -41,11 +41,11 @@ function drawArena() {
 	G.textAlign = "left"
 	G.fillStyle = "#ccf9"
 	G.shadowColor = "#ccf"
-	G.fillText(Mechanics.scores.getTotal(0),4.5,84.5)
+	G.fillText(Mechanics.scores.get(0),4.5,84.5)
 	G.textAlign = "right"
 	G.fillStyle = "#fcc9"
 	G.shadowColor = "#fcc"
-	G.fillText(Mechanics.scores.getTotal(1),154.5,84.5)
+	G.fillText(Mechanics.scores.get(1),154.5,84.5)
 	G.resetTransform()
 }
 
@@ -110,7 +110,7 @@ function setPlayer(id) {
 }
 
 function drawPlayer() {
-	const teamColor = ["#88f","#f88","#666"]
+	const teamColor = ["#99f","#f99","#666"]
 	let G = Graphics
 	let player = Mechanics.disks[PlayerID]
 	let center = V(4.5,4.5).add(player.position).mul(G.SCALE)
@@ -122,7 +122,7 @@ function drawPlayer() {
 	// Draw disk outline
 	G.beginPath()
 	G.strokeStyle = teamColor[player.team]
-	G.lineWidth = 0.05
+	G.lineWidth = 0.1
 	G.shadowColor = "#0000"
 	G.shadowBlur = 0
 	G.arc(0,0,1.1,0,2*Math.PI)

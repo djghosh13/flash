@@ -6,8 +6,8 @@ $(document).ready(function() {
 	spawn(130,20,1,new AntiAI())
 	spawn(20,60,0,new AntiAI())
 	spawn(130,60,1,new AntiAI())
-	/*spawn(20,40,0,new AntiAI())
-	spawn(130,40,1,new AntiAI())*/
+	spawn(20,40,0,new AntiAI())
+	spawn(130,40,1,new AntiAI())
 	requestAnimationFrame(gameLoop)
 })
 

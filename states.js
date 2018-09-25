@@ -59,6 +59,8 @@ class MoveState extends State {
 					let force = disp.norm(300/dist)
 					if (disk.team === team)
 						force = force.mul(0.5)
+					else if (dist === 1)
+						Mechanics.scores.give(team,2)
 					disk.velocity = disk.velocity.add(force)
 					disk.state = new StunState(disk,Math.floor(0.4*force.len()))
 				})
