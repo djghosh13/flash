@@ -84,8 +84,8 @@ class Scoreboard {
 	 * Scoring System
 	 * 
 	 * Fixed points:
-	 * 5 points for normal dash hit and initial stun (CHECK)
-	 * 1 point for proximity boom
+	 * 5 points for normal dash hit and stun (CHECK)
+	 * 2 points for proximity boom (CHECK)
 	 * 
 	 * Style points:
 	 * 1 point for intercepting opponent dash (start dash after opponent) (CHECK)
@@ -94,48 +94,47 @@ class Scoreboard {
 	 * 10 points for opponent powerup steal (CHECK)
 	 * 
 	 * Point bonus:
-	 * +25% points (rounded up) per player of deficit
+	 * Points gained x12 divided by number of players on team
 	 * 
 	 */
 	constructor() {
-		this.unused = [0, 0]
-		this.total = [0, 0]
-		this.possiblePoints = new Map()
+		this.points = [0, 0]
+		this.points_G = [0, 0]
+		this.pointQueue = new Map()
 		this.KILL_THRESH = 1200
 	}
 	get(team) {
 		if (team === 0 || team === 1)
-			return this.unused[team]
+			return this.points[team]
 		return 0
 	}
-	getTotal(team) {
+	get_G(team) {
 		if (team === 0 || team === 1)
-			return this.total[team]
+			return this.points_G[team]
 		return 0
 	}
 	give(team,points) {
 		if (team === 0 || team === 1) {
 			let multiplier = 12 / foreach(none,onTeam(team)).length
-			this.unused[team] += points * multiplier
-			this.total[team] += points * multiplier
+			this.points[team] += points * multiplier
 		}
 	}
 	consume(team,points) {
 		if (team === 0 || team === 1)
-			this.unused[team] = Math.max(this.unused[team] - points,0)
+			this.points[team] = Math.max(this.points[team] - points,0)
 	}
 	//
 	handle(event,disk) {
 		if (event === "DASH_START") {
 			let points = 5
-			this.possiblePoints.set(disk,points)
+			this.pointQueue.set(disk,points)
 		}
 		else if (event === "DASH_END") {
-			this.possiblePoints.set(disk,0)
+			this.pointQueue.set(disk,0)
 		}
 		else if (event === "HIT_WALL") {
-			if (this.possiblePoints.get(disk))
-				this.possiblePoints.set(disk,this.possiblePoints.get(disk) + 2)
+			if (this.pointQueue.get(disk))
+				this.pointQueue.set(disk,this.pointQueue.get(disk) + 2)
 		}
 	}
 	handleDiskHit(event0,disk0,event1,disk1) {
@@ -143,45 +142,54 @@ class Scoreboard {
 			return
 		if (!event0.endsWith("HARD") && !event1.endsWith("HARD"))
 			return
-		if (this.possiblePoints.get(disk0) && this.possiblePoints.get(disk1)) {
+		if (this.pointQueue.get(disk0) && this.pointQueue.get(disk1)) {
 			if (disk0.state.frame > disk1.state.frame)
 				this.give(disk0.team,1)
 			if (disk1.state.frame > disk0.state.frame)
 				this.give(disk1.team,1)
 		}
-		else if (this.possiblePoints.get(disk0)) {
-			this.give(disk0.team,this.possiblePoints.get(disk0))
-			this.possiblePoints.set(disk0,0)
+		else if (this.pointQueue.get(disk0)) {
+			this.give(disk0.team,this.pointQueue.get(disk0))
+			this.pointQueue.set(disk0,0)
 		}
-		else if (this.possiblePoints.get(disk1)) {
-			this.give(disk1.team,this.possiblePoints.get(disk1))
-			this.possiblePoints.set(disk1,0)
+		else if (this.pointQueue.get(disk1)) {
+			this.give(disk1.team,this.pointQueue.get(disk1))
+			this.pointQueue.set(disk1,0)
 		}
 	}
 	update() {
 		let M = Mechanics
 		// Spawn regular powerups
 		let numPowers = [foreachPower(none,onTeam(0)).length,foreachPower(none,onTeam(1)).length]
-		if (numPowers[0] < 2 && Math.random() < 1/300)
+		if (numPowers[0] < 2 && Math.random() < 0.001)
 			spawnPowerup(0)
-		if (numPowers[1] < 2 && Math.random() < 1/300)
+		if (numPowers[1] < 2 && Math.random() < 0.001)
 			spawnPowerup(1)
 		// Spawn KILL powerups
 		let numKills = foreachPower(none,(p => p.mode === "KILL")).length
-		if (this.unused[0]+this.unused[1] > this.KILL_THRESH &&
+		if (this.points[0]+this.points[1] > this.KILL_THRESH &&
 				2*numKills <= numDisks() && Math.random() < 0.005) {
-			let total = this.unused[0]*this.unused[0] + this.unused[1]*this.unused[1]
-			let prob0 = this.unused[0]*this.unused[0] / total
+			let total = this.points[0]*this.points[0] + this.points[1]*this.points[1]
+			let prob0 = this.points[0]*this.points[0] / total
 			if (Math.random() < prob0) {
 				spawnPowerup(0,true)
-				this.unused[0] = 0
-				this.unused[1] = Math.floor(this.unused[1] / 2)
+				this.consume(0,this.points[0])
+				this.consume(1,Math.floor(this.points[1] / 2))
 			} else {
 				spawnPowerup(1,true)
-				this.unused[0] = Math.floor(this.unused[0] / 2)
-				this.unused[1] = 0
+				this.consume(0,Math.floor(this.points[0] / 2))
+				this.consume(1,this.points[1])
 			}
 		}
+		// Update graphics points
+		if (this.points_G[0] < this.points[0])
+			this.points_G[0] = Math.min(this.points_G[0] + 0.2,this.points[0])
+		if (this.points_G[1] < this.points[1])
+			this.points_G[1] = Math.min(this.points_G[1] + 0.2,this.points[1])	
+		if (this.points_G[0] > this.points[0])
+			this.points_G[0] = Math.max(this.points_G[0] - 8,this.points[0])
+		if (this.points_G[1] > this.points[1])
+			this.points_G[1] = Math.max(this.points_G[1] - 8,this.points[1])
 	}
 }
 

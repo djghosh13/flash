@@ -28,8 +28,8 @@ function drawArena() {
 	G.shadowBlur = 10*G.SCALE
 	G.fillRect(4.5*G.SCALE,4.5*G.SCALE,150*G.SCALE,80*G.SCALE)
 	// Scores
-	let score0 = Mechanics.scores.get(0)
-	let score1 = Mechanics.scores.get(1)
+	let score0 = Mechanics.scores.get_G(0)
+	let score1 = Mechanics.scores.get_G(1)
 	let total = Math.max(score0 + score1,Mechanics.scores.KILL_THRESH)
 	G.shadowColor = "#99c"
 	G.fillRect(4.5*G.SCALE,4.5*G.SCALE,score0/total*150*G.SCALE,80*G.SCALE)
@@ -87,6 +87,16 @@ function drawDisk(disk) {
 	G.ellipse(0,0,1,1,0,0,2*Math.PI)
 	G.fill()
 	G.closePath()
+	// Draw KILL
+	if (disk.mode === "KILL") {
+		G.beginPath()
+		G.fillStyle = "#fff" + disk.state.G_ALPHA
+		G.shadowColor = teamColor[disk.team]
+		G.shadowBlur = radius / 4
+		G.ellipse(0,0,0.25,0.25,0,0,2*Math.PI)
+		G.fill()
+		G.closePath()
+	}
 	// Reset transform
 	G.resetTransform()
 }
