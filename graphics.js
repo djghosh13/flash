@@ -24,12 +24,27 @@ function drawArena() {
 	G.fillRect(0,0,Screen.width,Screen.height)
 	// Arena
 	G.fillStyle = "#000"
-	G.shadowColor = "#999f99"
+	G.shadowColor = "#9a9"
 	G.shadowBlur = 10*G.SCALE
 	G.fillRect(4.5*G.SCALE,4.5*G.SCALE,150*G.SCALE,80*G.SCALE)
+	// Scores
+	let score0 = Mechanics.scores.get(0)
+	let score1 = Mechanics.scores.get(1)
+	if (score0 + score1 >= Mechanics.scores.KILL_THRESH) {
+		let total = score0 + score1
+		G.shadowColor = "#fff"
+		G.fillRect((4.5 + score0/total*150)*G.SCALE,4.5*G.SCALE,0,80*G.SCALE)
+	} else {
+		let total = Mechanics.scores.KILL_THRESH
+		G.shadowColor = "#99c"
+		G.fillRect(4.5*G.SCALE,4.5*G.SCALE,score0/total*150*G.SCALE,80*G.SCALE)
+		G.shadowColor = "#c99"
+		G.fillRect(154.5*G.SCALE,4.5*G.SCALE,-score1/total*150*G.SCALE,80*G.SCALE)
+	}
 	// Show info along bottom
 	G.font = "10px monospace"
 	G.textBaseline = "top"
+	G.shadowColor = "#9a9"
 	G.shadowBlur = 100
 	G.scale(G.SCALE,G.SCALE)
 	// Player powerup
@@ -37,15 +52,6 @@ function drawArena() {
 	G.fillStyle = "#fff9"
 	G.shadowColor = "#fff"
 	G.fillText(Mechanics.disks[PlayerID].mode,75,84.5)
-	// Scores
-	/* G.textAlign = "left"
-	G.fillStyle = "#ccf9"
-	G.shadowColor = "#ccf"
-	G.fillText(Mechanics.scores.get(0),4.5,84.5)
-	G.textAlign = "right"
-	G.fillStyle = "#fcc9"
-	G.shadowColor = "#fcc"
-	G.fillText(Mechanics.scores.get(1),154.5,84.5) */
 	G.resetTransform()
 }
 

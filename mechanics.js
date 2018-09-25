@@ -101,6 +101,7 @@ class Scoreboard {
 		this.unused = [0, 0]
 		this.total = [0, 0]
 		this.possiblePoints = new Map()
+		this.KILL_THRESH = 1200
 	}
 	get(team) {
 		if (team === 0 || team === 1)
@@ -166,9 +167,9 @@ class Scoreboard {
 		if (numPowers[1] < 2 && Math.random() < 1/300)
 			spawnPowerup(1)
 		// Spawn KILL powerups
-		let KILL_THRESH = 1200
 		let numKills = foreachPower(none,(p => p.mode === "KILL")).length
-		if (this.unused[0] + this.unused[1] > KILL_THRESH && 2*numKills <= numDisks() && Math.random() < 0.02) {
+		if (this.unused[0]+this.unused[1] > this.KILL_THRESH &&
+				2*numKills <= numDisks() && Math.random() < 0.01) {
 			let total = this.unused[0]*this.unused[0] + this.unused[1]*this.unused[1]
 			let prob0 = this.unused[0]*this.unused[0] / total
 			if (Math.random() < prob0) {
